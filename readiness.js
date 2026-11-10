@@ -1,0 +1,5 @@
+(() => {
+ const card=document.createElement('details');card.className='card';const summary=node('summary','Build readiness & provider checks',card);node('p','Configuration means a key is present, not that access works. Reports describe the last console check; they do not run paid calls from this page.',card);const button=node('button','Refresh readiness',card);button.className='secondary';const output=node('div','',card);document.querySelector('main').append(card);
+ async function load(){const r=await api('readiness');output.replaceChildren();node('p',`This server: Gnani ${r.speech_configured?'configured':'not configured'} · reasoning ${r.reasoning_configured?'configured':'not configured'}`,output);if(!r.last_check){node('p','No check report yet. Run readiness.py for an offline check.',output);return}node('p',`Last check: ${r.last_check.mode} · ${r.last_check.checked_at}`,output);for(const c of r.last_check.checks||[])node('p',`${c.status.toUpperCase()} · ${c.name}${c.detail?' · '+c.detail:''}`,output);node('p',r.last_check.limitation,output);}
+ button.onclick=()=>run(button,load);load().catch(e=>notice(e.message));
+})();

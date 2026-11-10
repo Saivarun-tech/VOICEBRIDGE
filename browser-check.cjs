@@ -1,0 +1,20 @@
+const {chromium}=require('C:/Users/Vishnusaivarun/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{
+const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:8770/');
+await page.locator('#sample').click();await page.locator('#save').click();
+await page.getByText('Transcript saved. Review actions next.',{exact:true}).waitFor();
+await page.locator('#task').fill('Check projector');await page.locator('#quote').fill('Anita will check the projector.');await page.locator('#owner').fill('Anita');await page.locator('#add').click();
+await page.getByText('Reviewed task saved.',{exact:true}).waitFor();await page.getByRole('button',{name:'Mark done',exact:true}).first().click();
+await page.getByRole('button',{name:'Reopen',exact:true}).first().waitFor();
+await page.locator('#report').click();await page.locator('#reportResult pre').waitFor();
+if(!(await page.locator('#reportResult').innerText()).includes('[x] Check projector'))throw Error('Report status mismatch');
+await page.locator('#query').fill('projector');await page.locator('#search').click();await page.locator('#results strong').first().waitFor();
+await page.reload();await page.getByRole('button',{name:'Reopen',exact:true}).first().waitFor();
+await page.setViewportSize({width:390,height:844});
+if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Mobile horizontal overflow');
+if(errors.length)throw Error(errors.join(';'));
+console.log('PASS: capture, evidence-linked task, completion, report, search, reload, mobile width; no browser errors.');
+await browser.close();
+})().catch(e=>{console.error(e);process.exitCode=1});

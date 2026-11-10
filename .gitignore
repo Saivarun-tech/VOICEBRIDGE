@@ -1,0 +1,56 @@
+__pycache__/
+local_data/
+.env
+.env.*
+*.log
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# AI and development instructions
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursor/
+.codex/
+.github/instructions/
+
+# Internal planning and reports
+PLAN.md
+GEMINI_SETUP.md
+FIRST_USER_TEST.md
+FEATURE_STATUS.md
+LOCAL_RELEASE_STATUS.md
+READINESS.md
+RELEASE_SCOPE.md
+RELEASE_UPDATE_*.md
+VERIFICATION_STATUS.md
+LIVE_*_RESULT.md
+TEST_REPORT_*.md
+
+# Internal submission notes
+submission/DEMO_REHEARSAL.md
+submission/PUBLIC_POST_DRAFT.md
+submission/SUBMISSION_REQUIREMENTS.md
+submission/SUBMISSION_TEXT.md
+submission/TEST_RESULTS.md
+submission/*.zip
+submission/*.sha256.txt
+
+# Dependencies and cache
+node_modules/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Local files
+logs/
+*.log
+.DS_Store

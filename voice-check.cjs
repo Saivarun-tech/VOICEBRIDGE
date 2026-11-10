@@ -1,0 +1,13 @@
+const {chromium}=require('C:/Users/Vishnusaivarun/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{
+ const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
+ const context=await browser.newContext({permissions:['microphone']});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));let paidCalls=0;page.on('request',r=>{if(r.url().includes('/api/transcribe')||r.url().includes('/api/speak'))paidCalls++});
+ await page.goto('http://127.0.0.1:8771/');await page.locator('#record').click();await page.locator('#stopRecording').waitFor();await page.waitForFunction(()=>!document.getElementById('stopRecording').disabled);await page.waitForTimeout(1300);await page.locator('#stopRecording').click();await page.waitForFunction(()=>document.getElementById('audio').files.length===1);
+ const info=await page.locator('#audio').evaluate(async el=>{const file=el.files[0],v=new DataView(await file.arrayBuffer());return {rate:v.getUint32(24,true),channels:v.getUint16(22,true),bits:v.getUint16(34,true),frames:v.getUint32(40,true)/2}});
+ if(info.rate!==16000||info.channels!==1||info.bits!==16||info.frames<=0||info.frames>29*16000)throw Error('Invalid microphone WAV '+JSON.stringify(info));if(paidCalls)throw Error('Recording unexpectedly called provider');
+ await page.locator('#transcribe').click();await page.getByRole('status').filter({hasText:'Gnani key is not configured'}).waitFor();
+ // Test playback without spending credits. Fake a valid one-second WAV.
+ const wav=Buffer.alloc(32044);wav.write('RIFF');wav.writeUInt32LE(32036,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(16000,24);wav.writeUInt32LE(32000,28);wav.writeUInt16LE(2,32);wav.writeUInt16LE(16,34);wav.write('data',36);wav.writeUInt32LE(32000,40);
+ await page.route('**/api/speak',route=>route.fulfill({status:200,contentType:'audio/wav',body:wav}));await page.locator('#readText').fill('Hello team');await page.locator('#speak').click();await page.locator('#speechPlayer').waitFor({state:'visible'});await page.waitForFunction(()=>document.getElementById('speechPlayer').readyState>=2);
+ if(errors.length)throw Error(errors.join('; '));console.log('PASS: fake microphone to bounded PCM WAV, no automatic uploads, missing-key feedback, mocked WAV playback; no page errors.');await browser.close();
+})().catch(e=>{console.error(e);process.exitCode=1});
